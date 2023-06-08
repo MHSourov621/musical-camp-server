@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// DB_NAME=musicalBoss
+// DB_USER=musicalBoss
 // DB_PASS=1jVAuk1ySSJA1XeV
 
 
