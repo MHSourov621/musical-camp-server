@@ -79,6 +79,14 @@ async function run() {
             res.send(result)
         })
 
+        //instructor api
+
+        app.get('/instructors', async(req, res) => {
+            const query = {role : 'instructor'};
+            const result =  await usersCollection.find(query).toArray();
+            res.send(result);
+        })
+
 
         //classes api
 
