@@ -32,6 +32,11 @@ async function run() {
 
         //users api
 
+        app.get('/users', async(req, res) => {
+            const result = await usersCollection.find().toArray();
+            res.send(result);
+        })
+
         app.post('/users', async(req, res) => {
             const user = req.body;
             const query = {email: user.email};
@@ -47,7 +52,8 @@ async function run() {
         //classes api
 
         app.get('/classes', async(req, res) => {
-            const result = await classesCollection.find().sort({available_seats : 1}).toArray();
+            const query = {status : 'approved'}
+            const result = await classesCollection.find(query).sort({available_seats : 1}).toArray();
             res.send(result)
         })
 
