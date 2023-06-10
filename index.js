@@ -4,6 +4,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -47,6 +48,7 @@ async function run() {
         const usersCollection = client.db('misicalCamp').collection('users');
         const classesCollection = client.db('misicalCamp').collection('classes');
         const selectedCollection = client.db('misicalCamp').collection('selected');
+        const paymentCollection = client.db('misicalCamp').collection('payment');
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
@@ -88,9 +90,9 @@ async function run() {
         app.get('/admin/:email', verifyJWT,  async (req, res) => {
             const email = req.params.email;
 
-            // if (req.decoded.email !== email) {
-            //     res.send({ admin: false })
-            // }
+            if (req.decoded.email !== email) {
+                return res.send({ admin: false })
+            }
 
             const query = { email: email };
             const user = await usersCollection.findOne(query);
@@ -151,9 +153,16 @@ async function run() {
 
         app.get('/selected/:email', async(req, res) => {
             const email = req.params.email;
-            const query = {email: email};
+            const query = {email: email, payment: "pending"};
             const result = await selectedCollection.find(query).toArray();
             res.send(result); 
+        })
+
+        app.get('/select/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id : new ObjectId(id)};
+            const result = await selectedCollection.findOne(query);
+            res.send(result);
         })
 
         app.post('/selected', async(req, res) => {
@@ -162,11 +171,46 @@ async function run() {
             res.send(result);
         })
 
+        app.patch('/selectedpatch/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    payment: 'done'
+                },
+            };
+            const result = await selectedCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
         app.delete('/selected/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id : new ObjectId(id)};
             const result = await selectedCollection.deleteOne(query);
             res.send(result)
+        })
+
+        //create payment intent
+
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const { price } = req.body;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        //payment api
+
+        app.post('/payments', verifyJWT, async(req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentCollection.insertOne(payment);
+            res.send(insertResult)
         })
 
         // Send a ping to confirm a successful connection
