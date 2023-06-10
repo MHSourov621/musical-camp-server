@@ -17,7 +17,7 @@ const verifyJWT = (req, res, next) => {
     }
 
     const token = authorization.split(' ')[1];
-    jwt.verify(token, process.env.ACCESs_TOKEN_SECRET, (err, decoded) => {
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
         if (err) {
             return res.status(401).send({ error: true, message: 'unauthorized access' });
         }
@@ -83,6 +83,19 @@ async function run() {
             };
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
+        })
+
+        app.get('/admin/:email', verifyJWT,  async (req, res) => {
+            const email = req.params.email;
+            
+            // if (req.decoded.email !== email) {
+            //     res.send({ admin: false })
+            // }
+
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            const result = { admin: user?.role === 'admin' }
+            res.send(result)
         })
 
         app.patch('/users/instructor/:id', async (req, res) => {
