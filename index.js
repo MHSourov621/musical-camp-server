@@ -158,6 +158,13 @@ async function run() {
             res.send(result); 
         })
 
+        app.get('/selectedEnroll/:email', async(req, res) => {
+            const email = req.params.email;
+            const query = {email: email, payment: "done"};
+            const result = await selectedCollection.find(query).toArray();
+            res.send(result); 
+        })
+
         app.get('/select/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id : new ObjectId(id)};
@@ -173,10 +180,13 @@ async function run() {
 
         app.patch('/selectedpatch/:id', async (req, res) => {
             const id = req.params.id;
+            const seat = req.body;
+            console.log(seat);
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
-                    payment: 'done'
+                    payment: 'done',
+                    // available_seats: seat
                 },
             };
             const result = await selectedCollection.updateOne(filter, updateDoc);
@@ -206,6 +216,11 @@ async function run() {
         })
 
         //payment api
+
+        app.get('/payments', async(req, res) => {
+            const result = await paymentCollection.find().sort({data: -1}).toArray();
+            res.send(result);
+        })
 
         app.post('/payments', verifyJWT, async(req, res) => {
             const payment = req.body;
