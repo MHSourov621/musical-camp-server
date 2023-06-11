@@ -149,6 +149,12 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/classesmanage', async (req, res) => {
+            const query = { status: 'pending' }
+            const result = await classesCollection.find(query).toArray();
+            res.send(result)
+        })
+
         app.get('/classes/:email', async(req, res) => {
             const email = req.params.email;
             const query = {email: email};
@@ -162,14 +168,30 @@ async function run() {
             res.send(result)
         })
 
-        // app.get('/classes/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = {_id: id};
-        //     console.log(query);
-        //     const result = await classesCollection.findOne(query);
-        //     console.log(result);
-        //     res.send(result)
-        // })
+        app.patch('/classesapprove/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: 'approved'
+                },
+            };
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.patch('/classesdeny/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    status: 'deny',
+                },
+            };
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+        
 
         app.put('/class/:id', async (req, res) => {
             const id = req.params.id;
