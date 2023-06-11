@@ -150,8 +150,7 @@ async function run() {
         })
 
         app.get('/classesmanage', async (req, res) => {
-            const query = { status: 'pending' }
-            const result = await classesCollection.find(query).toArray();
+            const result = await classesCollection.find().sort({ status: -1 }).toArray();
             res.send(result)
         })
 
