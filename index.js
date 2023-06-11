@@ -52,7 +52,7 @@ async function run() {
 
         app.post('/jwt', async (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '1h' })
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: '30d' })
             res.send({ token })
         })
 
@@ -149,6 +149,35 @@ async function run() {
             res.send(result)
         })
 
+        app.post('/classes', async(req, res) => {
+            const newClass = req.body;
+            const result = await classesCollection.insertOne(newClass);
+            res.send(result)
+        })
+
+        // app.get('/classes/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = {_id: id};
+        //     console.log(query);
+        //     const result = await classesCollection.findOne(query);
+        //     console.log(result);
+        //     res.send(result)
+        // })
+
+        app.put('/class/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const {seat} = req.body;
+            const filter = { $or: [{_id: new ObjectId(id)}, {_id: id}] };
+            const updateDoc = {
+                $set: {
+                    available_seats: parseInt(seat)
+                },
+            };
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
         // selected api
 
         app.get('/selected/:email', async(req, res) => {
@@ -180,13 +209,12 @@ async function run() {
 
         app.patch('/selectedpatch/:id', async (req, res) => {
             const id = req.params.id;
-            const seat = req.body;
-            console.log(seat);
+            const {seat} = req.body;
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
                     payment: 'done',
-                    // available_seats: seat
+                    available_seats: parseInt(seat)
                 },
             };
             const result = await selectedCollection.updateOne(filter, updateDoc);
