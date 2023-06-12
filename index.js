@@ -273,8 +273,10 @@ async function run() {
 
         //payment api
 
-        app.get('/payments', async(req, res) => {
-            const result = await paymentCollection.find().sort({data: -1}).toArray();
+        app.get('/payments/:email', async(req, res) => {
+            const email = req.params.email;
+            const filter = {email: email};
+            const result = await paymentCollection.find(filter).sort({data: -1}).toArray();
             res.send(result);
         })
 
